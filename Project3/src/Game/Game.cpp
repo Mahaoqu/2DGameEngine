@@ -7,20 +7,23 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <glm/glm.hpp>
+
 #include <imgui/imgui.h>
 #include <imgui/imgui_sdl.h>
+#include <imgui/imgui_impl_sdl.h>
 
 #include "../Logger/Logger.h"
 
 #include "../Components/TransformComponent.h"
 #include "../Components/RigidBodyComponent.h"
 #include "../Components/SpriteComponent.h"
-#include "../Components/AnimationComponent.h"
 #include "../Components/BoxColliderComponent.h"
-#include "../Components/KeyboardControlledComponent.h"
-#include "../Components/CameraFollowComponent.h"
 #include "../Components/ProjectileEmitterComponent.h"
 #include "../Components/HealthComponent.h"
+
+#include "../Components/AnimationComponent.h"
+#include "../Components/KeyboardControlledComponent.h"
+#include "../Components/CameraFollowComponent.h"
 #include "../Components/TextLabelComponent.h"
 
 #include "../Systems/MovementSystem.h"
@@ -36,6 +39,7 @@
 #include "../Systems/RenderTextSystem.h"
 #include "../Systems/RenderHealthTextSystem.h"
 #include "../Systems/RenderHealthBarSystem.h"
+#include "../Systems/RenderGUISystem.h"
 
 int Game::window_width;
 int Game::window_height;
@@ -127,6 +131,17 @@ void Game::Run() {
 void Game::ProcessInput() {
     SDL_Event sdl_event;
     while (SDL_PollEvent(&sdl_event)) {
+        
+        // ImGui SDL input
+        ImGui_ImplSDL2_ProcessEvent(&sdl_event);
+        ImGuiIO& io = ImGui::GetIO();
+        int mouse_x, mouse_y;
+        const int buttons = SDL_GetMouseState(&mouse_x, &mouse_y);
+        io.MousePos = ImVec2(mouse_x, mouse_y);
+        io.MouseDown[0] = buttons & SDL_BUTTON(SDL_BUTTON_LEFT);
+        io.MouseDown[1] = buttons & SDL_BUTTON(SDL_BUTTON_RIGHT);
+
+        // Handle core SDL events (close window, key pressed, etc.)
         switch (sdl_event.type) {
             case SDL_QUIT:
                 is_running = false;
@@ -159,10 +174,12 @@ void Game::LoadLevel(int level) {
     registry->AddSystem<RenderTextSystem>();
     registry->AddSystem<RenderHealthTextSystem>();
     registry->AddSystem<RenderHealthBarSystem>();
+    registry->AddSystem<RenderGUISystem>();
 
     // Add assets to the asset_store.
     asset_store->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
     asset_store->AddTexture(renderer, "truck-image", "./assets/images/truck-ford-right.png");
+    asset_store->AddTexture(renderer, "tree-image", "./assets/images/tree.png");
     asset_store->AddTexture(renderer, "chopper-image", "./assets/images/chopper-spritesheet.png");
     asset_store->AddTexture(renderer, "radar-image", "./assets/images/radar.png");
     asset_store->AddTexture(renderer, "jungle", "./assets/tilemaps/jungle.png");
@@ -243,8 +260,8 @@ void Game::LoadLevel(int level) {
 
     Entity tank = registry->CreateEntity();
     tank.Group("enemies");
-    tank.AddComponent<TransformComponent>(glm::vec2(300.00, 500.0), glm::vec2(1.0, 1.0), 0.0);
-    tank.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
+    tank.AddComponent<TransformComponent>(glm::vec2(500.0, 500.0), glm::vec2(1.0, 1.0), 0.0);
+    tank.AddComponent<RigidBodyComponent>(glm::vec2(20.0, 0.0));
     tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
     tank.AddComponent<BoxColliderComponent>(32, 32);
     tank.AddComponent<ProjectileEmitterComponent>(glm::vec2(100.0, 0.0), 5000, 3000, 10, false);
@@ -260,6 +277,20 @@ void Game::LoadLevel(int level) {
     truck.AddComponent<ProjectileEmitterComponent>(glm::vec2(0.0, 100.0), 2000, 5000, 10, false);
     truck.AddComponent<HealthComponent>(100);
     truck.AddComponent<HealthLabelComponent>("charriot-font", green);
+
+    Entity tree_a = registry->CreateEntity();
+    tree_a.Group("obstacles");
+    tree_a.AddComponent<TransformComponent>(glm::vec2(400.0, 500.0), glm::vec2(1.0, 1.0), 0.0);
+    tree_a.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
+    tree_a.AddComponent<SpriteComponent>("tree-image", 16, 32, 1);
+    tree_a.AddComponent<BoxColliderComponent>(16, 32);
+
+    Entity tree_b = registry->CreateEntity();
+    tree_b.Group("obstacles");
+    tree_b.AddComponent<TransformComponent>(glm::vec2(600.0, 500.0), glm::vec2(1.0, 1.0), 0.0);
+    tree_b.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
+    tree_b.AddComponent<SpriteComponent>("tree-image", 16, 32, 1);
+    tree_b.AddComponent<BoxColliderComponent>(16, 32);
 
     Entity label = registry->CreateEntity();
     label.AddComponent<TextLabelComponent>(glm::vec2(window_width / 2 - 40, 10), "CHOPPER 1.0", "charriot-font", green, true);
@@ -288,6 +319,7 @@ void Game::Update() {
     event_bus->Reset();
 
     // Perform subscription of the events for all systems.
+    registry->GetSystem<MovementSystem>().SubscribeToEvents(event_bus);
     registry->GetSystem<DamageSystem>().SubscribeToEvents(event_bus);
     registry->GetSystem<KeyboardControlSystem>().SubscribeToEvents(event_bus);
     registry->GetSystem<ProjectileEmitSystem>().SubscribeToEvents(event_bus);
@@ -336,10 +368,14 @@ void Game::Render() {
     registry->GetSystem<RenderHealthBarSystem>().Update(renderer, camera);
     if (is_debug) {
         registry->GetSystem<RenderColliderSystem>().Update(renderer, camera);
-        ImGui::NewFrame();
-        ImGui::ShowDemoWindow();
-        ImGui::Render();
-        ImGuiSDL::Render(ImGui::GetDrawData());
+
+        registry->GetSystem<RenderGUISystem>().Update(registry, asset_store);
+
+        // Show the ImGui demo window.
+        //ImGui::NewFrame();
+        //ImGui::ShowDemoWindow();
+        //ImGui::Render();
+        //ImGuiSDL::Render(ImGui::GetDrawData());
     }
     SDL_RenderPresent(renderer);
 }

@@ -36,6 +36,18 @@ public:
             const auto& transform = entity.GetComponent<TransformComponent>();
             const auto sprite = entity.GetComponent<SpriteComponent>();
 
+            bool is_entity_outside_camera_view = (
+                transform.position.x + (transform.scale.x * sprite.width)  < camera.x ||
+                transform.position.x > camera.x + camera.w ||
+                transform.position.y + (transform.scale.y * sprite.height) < camera.y ||
+                transform.position.y > camera.y + camera.h
+            );
+
+            // Cull sprites that are outside the camera view and are not fixed.
+            if (is_entity_outside_camera_view && !sprite.is_fixed) {
+                continue;
+            }
+
             // Set the source rectangle of our original sprite texture.
             SDL_Rect src_rect = sprite.src_rect;
 
@@ -54,7 +66,7 @@ public:
                 &dst_rect,
                 transform.rotation,
                 NULL,
-                SDL_FLIP_NONE
+                sprite.flip
             );
 
             //SDL_Rect obj_rect = {
