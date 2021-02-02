@@ -408,6 +408,7 @@
     <ClInclude Include="src\Components\ProjectileComponent.h" />
     <ClInclude Include="src\Components\ProjectileEmitterComponent.h" />
     <ClInclude Include="src\Components\RigidBodyComponent.h" />
+    <ClInclude Include="src\Components\ScriptComponent.h" />
     <ClInclude Include="src\Components\SpriteComponent.h" />
     <ClInclude Include="src\Components\TextLabelComponent.h" />
     <ClInclude Include="src\Components\TransformComponent.h" />
@@ -433,6 +434,7 @@
     <ClInclude Include="src\Systems\RenderHealthTextSystem.h" />
     <ClInclude Include="src\Systems\RenderSystem.h" />
     <ClInclude Include="src\Systems\RenderTextSystem.h" />
+    <ClInclude Include="src\Systems\ScriptSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\Downloads\2021-01-31\2dgameengine\assets\scripts\Level1.lua" />

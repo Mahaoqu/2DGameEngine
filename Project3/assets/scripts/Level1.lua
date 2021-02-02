@@ -3103,6 +3103,128 @@ Level = {
                     color = {r = 0, g = 255, b = 0}
                 }
             }
+        },
+
+        {
+            -- SU-27 fighter jet
+            group = "enemies",
+            components = {
+                transform = {
+                    position = { x = 317, y = 985 },
+                    scale = { x = 1.0, y = 1.0 },
+                    rotation = 0.0, -- degrees
+                },
+                rigidbody = {
+                    velocity = { x = 0.0, y = -50.0 }
+                },
+                sprite = {
+                    texture_asset_id = "su27-texture",
+                    width = 32,
+                    height = 32,
+                    z_index = 5
+                },
+                animation = {
+                    num_frames = 2,
+                    speed_rate = 10 -- fps
+                },
+                boxcollider = {
+                    width = 32,
+                    height = 32
+                },
+                health = {
+                    health_percentage = 100
+                },
+                health_label = {
+                    font = "charriot-font",
+                    color = {r = 0, g = 255, b = 0}
+                },
+                projectile_emitter = {
+                    projectile_velocity = { x = 0, y = -100 },
+                    projectile_duration = 5, -- seconds
+                    repeat_frequency = 1, -- seconds
+                    hit_percentage_damage = 10,
+                    friendly = false
+                },
+                on_update_script = {
+                    [0] =
+                    function(entity, delta_time, ellapsed_time)
+                        -- this function makes the fighter jet move up and down the map shooting projectiles
+                        local current_position_x, current_position_y = get_position(entity)
+                        local current_velocity_x, current_velocity_y = get_velocity(entity)
+
+                        -- if it reaches the top or the bottom of the map
+                        if current_position_y < 10  or current_position_y > map_height - 32 then
+                            set_velocity(entity, 0, current_velocity_y * -1); -- flip the entity y-velocity
+                        else
+                            set_velocity(entity, 0, current_velocity_y); -- do not flip y-velocity
+                        end
+
+                        -- set the transform rotation to match going up or down
+                        if (current_velocity_y < 0) then
+                            set_rotation(entity, 0) -- point up
+                            set_projectile_velocity(entity, 0, -200) -- shoot projectiles up
+                        else
+                            set_rotation(entity, 180) -- point down
+                            set_projectile_velocity(entity, 0, 200) -- shoot projectiles down
+                        end
+                    end
+                }
+            }
+        },
+        {
+            -- F-22 fighter jet
+            group = "enemies",
+            components = {
+                transform = {
+                    position = { x = 10, y = 10 },
+                    scale = { x = 1.0, y = 1.0 },
+                    rotation = 90.0, -- degrees
+                },
+                rigidbody = {
+                    velocity = { x = 0.0, y = 0.0 }
+                },
+                sprite = {
+                    texture_asset_id = "f22-texture",
+                    width = 32,
+                    height = 32,
+                    z_index = 5
+                },
+                animation = {
+                    num_frames = 2,
+                    speed_rate = 10 -- fps
+                },
+                boxcollider = {
+                    width = 32,
+                    height = 32
+                },
+                health = {
+                    health_percentage = 100
+                },
+                health_label = {
+                    font = "charriot-font",
+                    color = {r = 0, g = 255, b = 0}
+                },
+                projectile_emitter = {
+                    projectile_velocity = { x = 200, y = 0 },
+                    projectile_duration = 1, -- seconds
+                    repeat_frequency = 1, -- seconds
+                    hit_percentage_damage = 10,
+                    friendly = false
+                },
+                on_update_script = {
+                    [0] =
+                    function(entity, delta_time, ellapsed_time)
+                        -- change the position of the the airplane to follow a sine wave movement
+                        local new_x = ellapsed_time * 0.09
+                        local new_y = 200 + (math.sin(ellapsed_time * 0.001) * 50)
+                        set_position(entity, new_x, new_y) -- set the new position
+                    end
+                }
+            }
         }
+
     }
 }
+
+map_width = Level.tilemap.num_cols * Level.tilemap.tile_size * Level.tilemap.scale
+map_height = Level.tilemap.num_rows * Level.tilemap.tile_size * Level.tilemap.scale

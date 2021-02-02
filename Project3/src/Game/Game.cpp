@@ -42,6 +42,7 @@
 #include "../Systems/RenderHealthTextSystem.h"
 #include "../Systems/RenderHealthBarSystem.h"
 #include "../Systems/RenderGUISystem.h"
+#include "../Systems/ScriptSystem.h"
 
 
 int Game::window_width;
@@ -82,8 +83,8 @@ void Game::Initialize() {
     SDL_GetCurrentDisplayMode(0, &display_mode);
     //window_width = display_mode.w;
     //window_height = display_mode.h;
-    window_width = 800;
-    window_height = 600;
+    window_width = 1920;
+    window_height = 1080;
     // ==========================================================================
     // Create the window.
     // ==========================================================================
@@ -178,6 +179,11 @@ void Game::Setup() {
     registry->AddSystem<RenderHealthTextSystem>();
     registry->AddSystem<RenderHealthBarSystem>();
     registry->AddSystem<RenderGUISystem>();
+    registry->AddSystem<ScriptSystem>();
+
+    // Create bindings between C++ and Lua.
+    registry->GetSystem<ScriptSystem>().CreateLuaBindings(lua);
+
     LevelLoader loader;
     lua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::os);
     loader.LoadLevel(lua, registry, asset_store, renderer, 1);
@@ -217,6 +223,7 @@ void Game::Update() {
     registry->GetSystem<ProjectileEmitSystem>().Update(registry);
     registry->GetSystem<CameraMovementSystem>().Update(camera);
     registry->GetSystem<ProjectileLifecycleSystem>().Update();
+    registry->GetSystem<ScriptSystem>().Update(delta_time, SDL_GetTicks());
 }
 
 void Game::Render() {
@@ -251,7 +258,6 @@ void Game::Render() {
     registry->GetSystem<RenderHealthBarSystem>().Update(renderer, camera);
     if (is_debug) {
         registry->GetSystem<RenderColliderSystem>().Update(renderer, camera);
-
         registry->GetSystem<RenderGUISystem>().Update(registry, asset_store);
 
         // Show the ImGui demo window.

@@ -22,6 +22,7 @@
 #include "../Components/HealthComponent.h"
 #include "../Components/HealthLabelComponent.h"
 #include "../Components/TextLabelComponent.h"
+#include "../Components/ScriptComponent.h"
 
 LevelLoader::LevelLoader() {
     Logger::Log("LevelLoader constructor called.");
@@ -287,69 +288,17 @@ void LevelLoader::LoadLevel(
                     )
                     );
             }
-        }
 
+            // Script
+            sol::optional<sol::table> script = entity["components"]["on_update_script"];
+            if (script != sol::nullopt) {
+                sol::function func = entity["components"]["on_update_script"][0];
+                new_entity.AddComponent<ScriptComponent>(func);
+            }
+        }
         j++;
     }
 
-    //// ===========================================================================
-    //// Create entities.
-    //// ===========================================================================
-
-    //SDL_Color green = {0, 255, 0};
-
-    //Entity chopper = registry->CreateEntity();
-    //chopper.Tag("player");
-    //chopper.AddComponent<TransformComponent>(glm::vec2(10.0, 100.0), glm::vec2(1.0, 1.0), 0.0);
-    //chopper.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
-    //chopper.AddComponent<SpriteComponent>("chopper-image", 32, 32, 1);
-    //chopper.AddComponent<BoxColliderComponent>(32, 32);
-    //chopper.AddComponent<AnimationComponent>(2, 15, true);
-    //chopper.AddComponent<KeyboardControlledComponent>(glm::vec2(0, -150), glm::vec2(150, 0), glm::vec2(0, 150), glm::vec2(-150, 0));
-    //chopper.AddComponent<CameraFollowComponent>();
-    //chopper.AddComponent<ProjectileEmitterComponent>(glm::vec2(0.0, 0.0), 0, 3000, 10, true);
-    //chopper.AddComponent<HealthComponent>(100);
-    //chopper.AddComponent<HealthLabelComponent>("charriot-font", green);
-
-    //Entity radar = registry->CreateEntity();
-    //radar.AddComponent<TransformComponent>(glm::vec2(Game::window_width * 2 - 74, 10.0), glm::vec2(1.0, 1.0), 0.0);
-    //radar.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
-    //radar.AddComponent<SpriteComponent>("radar-image", 64, 64, 1, true);
-    //radar.AddComponent<AnimationComponent>(8, 5, true);
-
-    //Entity tank = registry->CreateEntity();
-    //tank.Group("enemies");
-    //tank.AddComponent<TransformComponent>(glm::vec2(500.0, 500.0), glm::vec2(1.0, 1.0), 0.0);
-    //tank.AddComponent<RigidBodyComponent>(glm::vec2(20.0, 0.0));
-    //tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
-    //tank.AddComponent<BoxColliderComponent>(32, 32);
-    //tank.AddComponent<ProjectileEmitterComponent>(glm::vec2(100.0, 0.0), 5000, 3000, 10, false);
-    //tank.AddComponent<HealthComponent>(100);
-    //tank.AddComponent<HealthLabelComponent>("charriot-font", green);
-
-    //Entity truck = registry->CreateEntity();
-    //truck.Group("enemies");
-    //truck.AddComponent<TransformComponent>(glm::vec2(150.0, 500.0), glm::vec2(1.0, 1.0), 0.0);
-    //truck.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
-    //truck.AddComponent<SpriteComponent>("truck-image", 32, 32, 1);
-    //truck.AddComponent<BoxColliderComponent>(32, 32);
-    //truck.AddComponent<ProjectileEmitterComponent>(glm::vec2(0.0, 100.0), 2000, 5000, 10, false);
-    //truck.AddComponent<HealthComponent>(100);
-    //truck.AddComponent<HealthLabelComponent>("charriot-font", green);
-
-    //Entity tree_a = registry->CreateEntity();
-    //tree_a.Group("obstacles");
-    //tree_a.AddComponent<TransformComponent>(glm::vec2(400.0, 500.0), glm::vec2(1.0, 1.0), 0.0);
-    //tree_a.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
-    //tree_a.AddComponent<SpriteComponent>("tree-image", 16, 32, 1);
-    //tree_a.AddComponent<BoxColliderComponent>(16, 32);
-
-    //Entity tree_b = registry->CreateEntity();
-    //tree_b.Group("obstacles");
-    //tree_b.AddComponent<TransformComponent>(glm::vec2(600.0, 500.0), glm::vec2(1.0, 1.0), 0.0);
-    //tree_b.AddComponent<RigidBodyComponent>(glm::vec2(0.0, 0.0));
-    //tree_b.AddComponent<SpriteComponent>("tree-image", 16, 32, 1);
-    //tree_b.AddComponent<BoxColliderComponent>(16, 32);
 
     //Entity label = registry->CreateEntity();
     //label.AddComponent<TextLabelComponent>(glm::vec2(Game::window_width / 2 - 40, 10), "CHOPPER 1.0", "charriot-font", green, true);
